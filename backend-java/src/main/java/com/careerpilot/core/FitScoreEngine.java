@@ -1,4 +1,4 @@
-package com.careerpilot.rag;
+package com.careerpilot.core;
 
 import java.util.List;
 
