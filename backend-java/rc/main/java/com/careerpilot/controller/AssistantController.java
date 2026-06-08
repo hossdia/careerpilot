@@ -1,27 +1,31 @@
-package com.careerpilot.service;
+package com.careerpilot.controller;
 
-import com.careerpilot.model.CvData;
-import org.springframework.stereotype.Service;
+import com.careerpilot.model.ChatRequest;
+import com.careerpilot.model.ChatResponse;
+import com.careerpilot.service.AssistantService;
+import com.careerpilot.service.CvService;
+import org.springframework.web.bind.annotation.*;
 
-@Service
-public class AssistantService {
+@RestController
+@RequestMapping("/api/assistant")
+public class AssistantController {
 
-    public String answer(String message, CvData cv) {
+    private final AssistantService assistantService;
+    private final CvService cvService;
 
-        if (cv == null) {
-            return "Upload your CV first so I can analyze your career profile.";
-        }
+    public AssistantController(AssistantService assistantService,
+                               CvService cvService) {
+        this.assistantService = assistantService;
+        this.cvService = cvService;
+    }
 
-        if (message.toLowerCase().contains("ready")) {
-            return "Based on your CV skills: " + cv.skills +
-                    ". You are partially ready. Focus on missing advanced system design + DSA.";
-        }
+    @PostMapping("/chat")
+    public ChatResponse chat(@RequestBody ChatRequest req) {
 
-        if (message.toLowerCase().contains("missing skills")) {
-            return "You already know: " + cv.skills +
-                    ". You should improve system design, cloud (AWS), and advanced SQL.";
-        }
+        var cv = cvService.getCv(req.userId);
 
-        return "I analyzed your CV. You currently have: " + cv.skills;
+        String answer = assistantService.answer(req.message, cv);
+
+        return new ChatResponse(answer);
     }
 }
