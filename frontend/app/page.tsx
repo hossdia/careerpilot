@@ -1,92 +1,71 @@
 "use client";
 
 import AppLayout from "@/components/layout/AppLayout";
+import { useState, useEffect } from "react";
 
-export default function DashboardPage() {
+type JobMatch = {
+    title: string;
+    company: string;
+    location: string;
+    fitScore: number;
+    reason: string;
+};
+
+export default function JobsPage() {
+    const [jobs, setJobs] = useState<JobMatch[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch real computed match ratings from our Java controller
+        fetch("http://localhost:8080/api/jobs/match")
+            .then((res) => res.json())
+            .then((data) => {
+                setJobs(data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
+
     return (
         <AppLayout>
-            <div className="page-container">
-                <div
-                    style={{
-                        marginBottom: 32,
-                    }}
-                >
-                    <p className="section-label">Dashboard</p>
+            <div className="page-container" style={{ padding: "30px", maxWidth: "800px", margin: "0 auto" }}>
+                <h1 style={{ fontFamily: "Syne", fontSize: "28px", marginBottom: "10px" }}>🎯 Job Hunter Agent</h1>
+                <p style={{ color: "gray", marginBottom: "20px" }}>Real-time match scores calculated mathematically from your active profile skills.</p>
 
-                    <h1
-                        style={{
-                            fontSize: 42,
-                            fontWeight: 800,
-                            marginTop: 8,
-                            marginBottom: 12,
-                        }}
-                    >
-                        Welcome to <span className="grad-text">CareerPilot</span>
-                    </h1>
-
-                    <p
-                        style={{
-                            color: "var(--text-secondary)",
-                            maxWidth: 700,
-                        }}
-                    >
-                        Your AI-powered career operating system. Track applications,
-                        discover opportunities, analyze skill gaps, and accelerate your
-                        career growth.
-                    </p>
-                </div>
-
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
-                        gap: 20,
-                        marginBottom: 30,
-                    }}
-                >
-                    <div className="glass card">
-                        <h3>Applications</h3>
-                        <h1 style={{ marginTop: 12 }}>14</h1>
+                {loading ? (
+                    <div>Loading potential career matches...</div>
+                ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                        {jobs.map((job, idx) => (
+                            <div key={idx} style={{
+                                border: "1px solid var(--glass-border)",
+                                borderRadius: "12px",
+                                padding: "20px",
+                                background: "rgba(255,255,255,0.03)",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center"
+                            }}>
+                                <div>
+                                    <h3 style={{ margin: "0 0 5px 0" }}>{job.title}</h3>
+                                    <p style={{ margin: "0", color: "gray", fontSize: "14px" }}>{job.company} • {job.location}</p>
+                                    <p style={{ margin: "10px 0 0 0", color: "#a78bfa", fontSize: "13px" }}>✨ {job.reason}</p>
+                                </div>
+                                <div style={{
+                                    background: job.fitScore > 50 ? "rgba(74,222,128,0.15)" : "rgba(248,113,113,0.15)",
+                                    border: job.fitScore > 50 ? "1px solid #4ade80" : "1px solid #f87171",
+                                    color: job.fitScore > 50 ? "#4ade80" : "#f87171",
+                                    padding: "10px 15px",
+                                    borderRadius: "8px",
+                                    fontWeight: "bold",
+                                    fontSize: "18px"
+                                }}>
+                                    {job.fitScore}% Match
+                                </div>
+                            </div>
+                        ))}
                     </div>
-
-                    <div className="glass card">
-                        <h3>Interviews</h3>
-                        <h1 style={{ marginTop: 12 }}>2</h1>
-                    </div>
-
-                    <div className="glass card">
-                        <h3>Goals Completed</h3>
-                        <h1 style={{ marginTop: 12 }}>67%</h1>
-                    </div>
-
-                    <div className="glass card">
-                        <h3>Readiness Score</h3>
-                        <h1 style={{ marginTop: 12 }}>82%</h1>
-                    </div>
-                </div>
-
-                <div className="glass card">
-                    <h2
-                        style={{
-                            marginBottom: 16,
-                        }}
-                    >
-                        AI Recommendations
-                    </h2>
-
-                    <ul
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 12,
-                            color: "var(--text-secondary)",
-                        }}
-                    >
-                        <li>Apply to 3 ML internships this week.</li>
-                        <li>Improve SQL skills to increase fit score.</li>
-                        <li>Complete your DSA roadmap milestone.</li>
-                    </ul>
-                </div>
+                )}
             </div>
         </AppLayout>
     );
